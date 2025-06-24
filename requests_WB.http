@@ -1,0 +1,12 @@
+### GET request to example server
+GET https://examples.http-client.intellij.net/get
+    ?generated-in=PyCharm
+
+###
+GET http://localhost:8000/api/products/?min_price=20000&min_rating=4
+
+###
+GET http://localhost:8000/api/products/?min_price=40000
+
+###
+GET http://localhost:8000/api/products/?min_rating=4.5
