@@ -10,7 +10,7 @@ const PriceHistogram = ({ products }) => {
     { name: '30k+', min: 30000, max: Infinity, count: 0 },
   ];
 
-  products.forEach((product) => {
+  products.forEach(product => {
     const price = parseFloat(product.price);
     for (const range of priceRanges) {
       if (price >= range.min && price < range.max) {
@@ -21,15 +21,15 @@ const PriceHistogram = ({ products }) => {
   });
 
   return (
-    <div style={{ width: '100%', height: 300 }}>
-      <h3>Распределение цен</h3>
-      <ResponsiveContainer width="100%" height="80%">
+    <div className="chart">
+      <h3>Распределение цен (N={products.length})</h3>
+      <ResponsiveContainer width="100%" height={300}>
         <BarChart data={priceRanges}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis dataKey="name" />
           <YAxis />
-          <Tooltip />
-          <Bar dataKey="count" fill="#8884d8" />
+          <Tooltip formatter={(value) => [`${value} товаров`, 'Количество']} />
+          <Bar dataKey="count" fill="#8884d8" name="Количество товаров" />
         </BarChart>
       </ResponsiveContainer>
     </div>

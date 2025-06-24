@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { getProducts } from './api';
 import ProductTable from './components/ProductTable';
 import PriceHistogram from './components/PriceHistogram';
@@ -8,7 +8,7 @@ import RatingFilter from './components/RatingFilter';
 import './App.css';
 
 function App() {
-  const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     minPrice: 0,
@@ -16,26 +16,39 @@ function App() {
     minRating: 3,
   });
 
+  // Загрузка всех продуктов один раз при монтировании
   useEffect(() => {
-    fetchProducts();
-  }, [filters]);
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await getProducts();
+        setAllProducts(response.data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const params = {
-        price__gte: filters.minPrice,
-        price__lte: filters.maxPrice,
-        rating__gte: filters.minRating,
-      };
-      const response = await getProducts(params);
-      setProducts(response.data);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchProducts();
+  }, []);
+
+  // Фильтрация продуктов при изменении фильтров
+  const filteredProducts = useMemo(() => {
+    return allProducts.filter(product => {
+      const price = parseFloat(product.price);
+      const rating = parseFloat(product.rating);
+      return (
+        price >= filters.minPrice &&
+        price <= filters.maxPrice &&
+        rating >= filters.minRating
+      );
+    });
+  }, [allProducts, filters]);
+
+  if (loading) {
+    return <div className="loading">Загрузка данных...</div>;
+  }
 
   return (
     <div className="App">
@@ -54,18 +67,14 @@ function App() {
         />
       </div>
 
-      {loading ? (
-        <p>Загрузка данных...</p>
-      ) : (
-        <>
-          <ProductTable products={products} />
+      <div className="data-container">
+        <ProductTable products={filteredProducts} />
 
-          <div className="charts-container">
-            <PriceHistogram products={products} />
-            <DiscountScatterPlot products={products} />
-          </div>
-        </>
-      )}
+        <div className="charts-container">
+          <PriceHistogram products={filteredProducts} />
+          <DiscountScatterPlot products={filteredProducts} />
+        </div>
+      </div>
     </div>
   );
 }
